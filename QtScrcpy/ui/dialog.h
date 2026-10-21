@@ -84,6 +84,11 @@ private slots:
 
     void showIpEditMenu(const QPoint &pos);
 
+    // 自动投屏：识别到新设备时自动开始投屏
+    void startMirrorForSerial(const QString &serial);
+    // 计算设备当前槽位（1 开始）
+    int getDeviceSlot(const QString &serial);
+
 private:
     bool checkAdbRun();
     void initUI();

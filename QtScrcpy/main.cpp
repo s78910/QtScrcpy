@@ -56,6 +56,14 @@ int main(int argc, char *argv[])
         qputenv("QTSCRCPY_DEFAULT_CONFIG_PATH", defaultConfigPath.toLocal8Bit());
     }
 
+    // 尽量在当前文件夹（exe 同级目录）生成配置/键位文件，避免写入 C 盘系统目录
+    if (qgetenv("QTSCRCPY_CONFIG_PATH").isEmpty()) {
+        qputenv("QTSCRCPY_CONFIG_PATH", (executableDir + "/config").toLocal8Bit());
+    }
+    if (qgetenv("QTSCRCPY_KEYMAP_PATH").isEmpty()) {
+        qputenv("QTSCRCPY_KEYMAP_PATH", (executableDir + "/keymap").toLocal8Bit());
+    }
+
     // set env
 #ifdef Q_OS_WIN32
     qputenv("QTSCRCPY_ADB_PATH", "../../../QtScrcpy/QtScrcpyCore/src/third_party/adb/win/adb.exe");

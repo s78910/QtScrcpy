@@ -159,6 +159,11 @@ Dialog::Dialog(QWidget *parent) : QWidget(parent), ui(new Ui::Widget)
                 for (auto &item : devices) {
                     ui->serialBox->addItem(item);
                     ui->connectedPhoneList->addItem(Config::getInstance().getNickName(item) + "-" + item);
+
+                    // 自动投屏：识别到尚未投屏的新设备，自动开始投屏
+                    if (ui->autoMirrorCheck->isChecked() && !qsc::IDeviceManage::getInstance().getDevice(item)) {
+                        startMirrorForSerial(item);
+                    }
                 }
             } else if (args.contains("show") && args.contains("wlan0")) {
                 QString ip = m_adb.getDeviceIPFromStdOut();
@@ -615,6 +620,8 @@ void Dialog::updateBootConfig(bool toView)
         ui->fpsCheck->setChecked(config.showFPS);
         ui->alwaysTopCheck->setChecked(config.windowOnTop);
         ui->closeScreenCheck->setChecked(config.autoOffScreen);
+        ui->autoCloseScreenCheck->setChecked(config.autoCloseScreen);
+        ui->autoMirrorCheck->setChecked(config.autoMirror);
         ui->stayAwakeCheck->setChecked(config.keepAlive);
         ui->useSingleModeCheck->setChecked(config.simpleMode);
         ui->autoUpdatecheckBox->setChecked(config.autoUpdateDevice);
@@ -658,6 +665,8 @@ void Dialog::updateBootConfig(bool toView)
         config.showFPS = ui->fpsCheck->isChecked();
         config.windowOnTop = ui->alwaysTopCheck->isChecked();
         config.autoOffScreen = ui->closeScreenCheck->isChecked();
+        config.autoCloseScreen = ui->autoCloseScreenCheck->isChecked();
+        config.autoMirror = ui->autoMirrorCheck->isChecked();
         config.framelessWindow = ui->framelessCheck->isChecked();
         config.keepAlive = ui->stayAwakeCheck->isChecked();
         config.simpleMode = ui->useSingleModeCheck->isChecked();
@@ -838,7 +847,7 @@ void Dialog::on_startServerBtn_clicked()
             : qsc::CAMERA_FACING_BACK;
     params.cameraId = ui->cameraFacingBox->currentData().toString();
     const bool camera = params.videoSource == qsc::VIDEO_SOURCE_CAMERA;
-    params.closeScreen = !camera && ui->closeScreenCheck->isChecked();
+    params.closeScreen = !camera && (ui->autoCloseScreenCheck->isChecked() || ui->closeScreenCheck->isChecked());
     params.useReverse = ui->useReverseCheck->isChecked();
     params.display = !ui->notDisplayCheck->isChecked();
     params.renderExpiredFrames = Config::getInstance().getRenderExpiredFrames();
@@ -955,6 +964,38 @@ void Dialog::on_startServerBtn_clicked()
         }
     });
     versionAdb->execute(params.serial, QStringList() << "shell" << "getprop" << "ro.build.version.sdk");
+}
+
+void Dialog::startMirrorForSerial(const QString &serial)
+{
+    if (serial.trimmed().isEmpty()) {
+        return;
+    }
+    if (ui->serialBox->findText(serial) < 0) {
+        return;
+    }
+    // 延迟到事件循环，避免在 adb 回调中直接启动 server 造成递归/重入
+    QTimer::singleShot(0, this, [this, serial]() {
+        int index = ui->serialBox->findText(serial);
+        if (index < 0) {
+            return;
+        }
+        ui->serialBox->setCurrentIndex(index);
+        on_startServerBtn_clicked();
+    });
+}
+
+int Dialog::getDeviceSlot(const QString &serial)
+{
+    // 槽位：1 开始，按在设备列表中的位置计算
+    if (serial.isEmpty()) {
+        return 1;
+    }
+    int index = ui->serialBox->findText(serial);
+    if (index >= 0) {
+        return index + 1;
+    }
+    return 1;
 }
 
 void Dialog::on_refreshCameraBtn_clicked()
@@ -1280,7 +1321,8 @@ void Dialog::onDeviceConnected(bool success, const QString &serial, const QStrin
     if (name.isEmpty()) {
         name = Config::getInstance().getTitle();
     }
-    videoForm->setWindowTitle(name + "-" + serial);
+    // 标题显示：设备名称 - 序列号 (槽位N)
+    videoForm->setWindowTitle(name + "-" + serial + QString(" (槽位%1)").arg(getDeviceSlot(serial)));
     videoForm->updateShowSize(size);
 
     bool deviceVer = size.height() > size.width();

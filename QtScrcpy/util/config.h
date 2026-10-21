@@ -20,6 +20,8 @@ struct UserBootConfig
     bool showFPS          = false;
     bool windowOnTop      = false;
     bool autoOffScreen    = false;
+    bool autoCloseScreen  = true;  // 启动自动关屏（默认开启）
+    bool autoMirror       = true;  // 检测到设备接入自动投屏（默认开启）
     bool framelessWindow  = false;
     bool keepAlive        = false;
     bool simpleMode       = false;

@@ -31,9 +31,9 @@
     </widget>
    </item>
    <item>
-    <widget class="QPushButton" name="fullScreenBtn">
+    <widget class="QPushButton" name="copyBtn">
      <property name="toolTip">
-      <string>full screen</string>
+      <string>一键复制 Aa123456</string>
      </property>
      <property name="text">
       <string/>

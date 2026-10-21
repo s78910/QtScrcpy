@@ -549,7 +549,9 @@ void Dialog::onDeviceConnected(bool success, const QString &serial, const QStrin
             break;
         }
     }
-    videoForm->setWindowTitle(name + "-" + serial + QString(" (槽位%1)").arg(slot));
+    // 槽位用字母分区显示：1 -> A槽，2 -> B槽，以此类推
+    const QChar slotName = QChar('A' + (slot - 1) % 26);
+    videoForm->setWindowTitle(name + "-" + serial + QString(" (%1槽)").arg(slotName));
     videoForm->updateShowSize(size);
 
     bool deviceVer = size.height() > size.width();

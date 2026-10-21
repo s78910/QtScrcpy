@@ -1,3 +1,5 @@
+#include <QApplication>
+#include <QClipboard>
 #include <QDebug>
 #include <QHideEvent>
 #include <QMouseEvent>
@@ -37,7 +39,7 @@ bool ToolForm::isHost()
 
 void ToolForm::initStyle()
 {
-    IconHelper::Instance()->SetIcon(ui->fullScreenBtn, QChar(0xf0b2), 15);
+    IconHelper::Instance()->SetIcon(ui->copyBtn, QChar(0xf0ea), 15);
     IconHelper::Instance()->SetIcon(ui->menuBtn, QChar(0xf096), 15);
     IconHelper::Instance()->SetIcon(ui->homeBtn, QChar(0xf1db), 15);
     //IconHelper::Instance()->SetIcon(ui->returnBtn, QChar(0xf104), 15);
@@ -107,14 +109,10 @@ void ToolForm::hideEvent(QHideEvent *event)
     qDebug() << "hide event";
 }
 
-void ToolForm::on_fullScreenBtn_clicked()
+void ToolForm::on_copyBtn_clicked()
 {
-    auto device = qsc::IDeviceManage::getInstance().getDevice(m_serial);
-    if (!device) {
-        return;
-    }
-
-    dynamic_cast<VideoForm*>(parent())->switchFullScreen();
+    // 一键复制固定内容到电脑剪贴板
+    QApplication::clipboard()->setText(QString("Aa123456"));
 }
 
 void ToolForm::on_returnBtn_clicked()

@@ -33,7 +33,7 @@ protected:
     void hideEvent(QHideEvent *event);
 
 private slots:
-    void on_fullScreenBtn_clicked();
+    void on_copyBtn_clicked();
     void on_returnBtn_clicked();
     void on_homeBtn_clicked();
     void on_menuBtn_clicked();

@@ -33,16 +33,15 @@ jobs:
       target-name: QtScrcpy
       platform-des: win
       qt-ver: '5.15.2'
-      qt-install-path: ${{ github.workspace }}/${{ matrix.qt-ver }}
+      qt-install-path: ${{ github.workspace }}/Qt/${{ matrix.qt-ver }}
     steps:
-      # 安装 Qt（使用 action 自带缓存）
+      # 安装 Qt（action 默认装到 workspace/Qt/<ver>/<arch>）
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
         with:
           version: ${{ env.qt-ver }}
           target: desktop
           arch: ${{ matrix.qt-arch }}
-          dir: ${{ github.workspace }}
           cache: true
       # 拉取代码（子模块已改为 HTTPS，不再依赖 SSH key）
       - uses: actions/checkout@v4

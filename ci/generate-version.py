@@ -1,20 +1,25 @@
-import sys
 import os
 
 if __name__ == '__main__':
-    p = os.popen('git rev-list --tags --max-count=1')
-    commit = p.read()
-    p.close()
+    tag = ''
+    try:
+        p = os.popen('git rev-list --tags --max-count=1')
+        commit = p.read()
+        p.close()
 
-    p = os.popen('git describe --tags ' + commit)
-    tag = p.read()
-    p.close()
+        if commit.strip():
+            p = os.popen('git describe --tags ' + commit)
+            tag = p.read()
+            p.close()
+    except Exception:
+        tag = ''
 
-    # print('get tag:', tag)
+    # 没有 tag（如 fork 仓库）时使用兜底版本号
+    if len(tag) >= 2 and tag.startswith('v'):
+        version = str(tag[1:]).strip()
+    else:
+        version = '3.3.3'
 
-    version = str(tag[1:])
     version_file = os.path.abspath(os.path.join(os.path.dirname(__file__), "../QtScrcpy/appversion"))
-    file=open(version_file, 'w')
-    file.write(version)
-    file.close()
-    sys.exit(0)
+    with open(version_file, 'w') as file:
+        file.write(version)

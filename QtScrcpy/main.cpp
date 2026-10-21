@@ -1,8 +1,8 @@
 ﻿#include <QApplication>
 #include <QDebug>
 #include <QFile>
-#ifdef Q_OS_LINUX
 #include <QFileInfo>
+#ifdef Q_OS_LINUX
 #include <QIcon>
 #endif
 #include <QSurfaceFormat>
@@ -29,15 +29,11 @@ int main(int argc, char *argv[])
 #ifdef Q_OS_WIN32
     qputenv("QTSCRCPY_ADB_PATH", "../../../QtScrcpy/QtScrcpyCore/src/third_party/adb/win/adb.exe");
     qputenv("QTSCRCPY_SERVER_PATH", "../../../QtScrcpy/QtScrcpyCore/src/third_party/scrcpy-server");
-    qputenv("QTSCRCPY_KEYMAP_PATH", "../../../keymap");
-    qputenv("QTSCRCPY_CONFIG_PATH", "../../../config");
 #endif
 
 #ifdef Q_OS_OSX
     qputenv("QTSCRCPY_ADB_PATH", "../../../../../../QtScrcpy/QtScrcpyCore/src/third_party/adb/mac/adb");
     qputenv("QTSCRCPY_SERVER_PATH", "../../../../../../QtScrcpy/QtScrcpyCore/src/third_party/scrcpy-server");
-    qputenv("QTSCRCPY_KEYMAP_PATH", "../../../../../../keymap");
-    qputenv("QTSCRCPY_CONFIG_PATH", "../../../../../../config");
 #endif
 
 #ifdef Q_OS_LINUX
@@ -48,13 +44,16 @@ int main(int argc, char *argv[])
     if (qgetenv("QTSCRCPY_SERVER_PATH").isEmpty()) {
         qputenv("QTSCRCPY_SERVER_PATH", "../../../QtScrcpy/QtScrcpyCore/src/third_party/scrcpy-server");
     }
-    if (qgetenv("QTSCRCPY_KEYMAP_PATH").isEmpty()) {
-        qputenv("QTSCRCPY_KEYMAP_PATH", "../../../keymap");
-    }
-    if (qgetenv("QTSCRCPY_CONFIG_PATH").isEmpty()) {
-        qputenv("QTSCRCPY_CONFIG_PATH", "../../../config");
-    }
 #endif
+
+    // 配置与键位文件生成在程序所在目录，尽量不写入 C 盘系统目录
+    const QString executableDir = QFileInfo(QString::fromLocal8Bit(argv[0])).absolutePath();
+    if (qgetenv("QTSCRCPY_CONFIG_PATH").isEmpty()) {
+        qputenv("QTSCRCPY_CONFIG_PATH", (executableDir + "/config").toLocal8Bit());
+    }
+    if (qgetenv("QTSCRCPY_KEYMAP_PATH").isEmpty()) {
+        qputenv("QTSCRCPY_KEYMAP_PATH", (executableDir + "/keymap").toLocal8Bit());
+    }
 
     g_msgType = covertLogLevel(Config::getInstance().getLogLevel());
 

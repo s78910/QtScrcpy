@@ -1,4 +1,5 @@
 ﻿#include <QDebug>
+#include <QDir>
 #include <QFile>
 #include <QFileDialog>
 #include <QKeyEvent>
@@ -22,10 +23,10 @@ const QString &getKeyMapPath()
 {
     if (s_keyMapPath.isEmpty()) {
         s_keyMapPath = QString::fromLocal8Bit(qgetenv("QTSCRCPY_KEYMAP_PATH"));
-        QFileInfo fileInfo(s_keyMapPath);
-        if (s_keyMapPath.isEmpty() || !fileInfo.isDir()) {
+        if (s_keyMapPath.isEmpty()) {
             s_keyMapPath = QCoreApplication::applicationDirPath() + "/keymap";
         }
+        QDir().mkpath(s_keyMapPath);
     }
     return s_keyMapPath;
 }
@@ -75,6 +76,20 @@ Dialog::Dialog(QWidget *parent) : QWidget(parent), ui(new Ui::Widget)
                 for (auto &item : devices) {
                     ui->serialBox->addItem(item);
                     ui->connectedPhoneList->addItem(Config::getInstance().getNickName(item) + "-" + item);
+                }
+
+                // 自动投屏：为尚未投屏的设备自动启动
+                if (ui->autoMirrorCheck->isChecked()) {
+                    for (const QString &serial : devices) {
+                        if (qsc::IDeviceManage::getInstance().getDevice(serial)) {
+                            continue;
+                        }
+                        int index = ui->serialBox->findText(serial);
+                        if (index >= 0) {
+                            ui->serialBox->setCurrentIndex(index);
+                            on_startServerBtn_clicked();
+                        }
+                    }
                 }
             } else if (args.contains("show") && args.contains("wlan0")) {
                 QString ip = m_adb.getDeviceIPFromStdOut();
@@ -219,6 +234,8 @@ void Dialog::updateBootConfig(bool toView)
         ui->fpsCheck->setChecked(config.showFPS);
         ui->alwaysTopCheck->setChecked(config.windowOnTop);
         ui->closeScreenCheck->setChecked(config.autoOffScreen);
+        ui->autoCloseScreenCheck->setChecked(config.autoCloseScreen);
+        ui->autoMirrorCheck->setChecked(config.autoMirror);
         ui->stayAwakeCheck->setChecked(config.keepAlive);
         ui->useSingleModeCheck->setChecked(config.simpleMode);
         ui->autoUpdatecheckBox->setChecked(config.autoUpdateDevice);
@@ -237,6 +254,8 @@ void Dialog::updateBootConfig(bool toView)
         config.showFPS = ui->fpsCheck->isChecked();
         config.windowOnTop = ui->alwaysTopCheck->isChecked();
         config.autoOffScreen = ui->closeScreenCheck->isChecked();
+        config.autoCloseScreen = ui->autoCloseScreenCheck->isChecked();
+        config.autoMirror = ui->autoMirrorCheck->isChecked();
         config.framelessWindow = ui->framelessCheck->isChecked();
         config.keepAlive = ui->stayAwakeCheck->isChecked();
         config.simpleMode = ui->useSingleModeCheck->isChecked();
@@ -340,7 +359,7 @@ void Dialog::on_startServerBtn_clicked()
     params.bitRate = getBitRate();
     // on devices with Android >= 10, the capture frame rate can be limited
     params.maxFps = static_cast<quint32>(Config::getInstance().getMaxFps());
-    params.closeScreen = ui->closeScreenCheck->isChecked();
+    params.closeScreen = ui->closeScreenCheck->isChecked() || ui->autoCloseScreenCheck->isChecked();
     params.useReverse = ui->useReverseCheck->isChecked();
     params.display = !ui->notDisplayCheck->isChecked();
     params.renderExpiredFrames = Config::getInstance().getRenderExpiredFrames();
@@ -523,7 +542,14 @@ void Dialog::onDeviceConnected(bool success, const QString &serial, const QStrin
     if (name.isEmpty()) {
         name = Config::getInstance().getTitle();
     }
-    videoForm->setWindowTitle(name + "-" + serial);
+    int slot = 1;
+    for (int i = 0; i < ui->serialBox->count(); ++i) {
+        if (ui->serialBox->itemText(i).trimmed() == serial) {
+            slot = i + 1;
+            break;
+        }
+    }
+    videoForm->setWindowTitle(name + "-" + serial + QString(" (槽位%1)").arg(slot));
     videoForm->updateShowSize(size);
 
     bool deviceVer = size.height() > size.width();

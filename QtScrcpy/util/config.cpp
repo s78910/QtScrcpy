@@ -1,4 +1,5 @@
 ﻿#include <QCoreApplication>
+#include <QDir>
 #include <QFileInfo>
 #include <QSettings>
 #include <QDebug>
@@ -81,6 +82,12 @@
 #define COMMON_AUTO_OFF_SCREEN_KEY "AutoOffScreen"
 #define COMMON_AUTO_OFF_SCREEN_DEF false
 
+#define COMMON_AUTO_CLOSE_SCREEN_KEY "AutoCloseScreen"
+#define COMMON_AUTO_CLOSE_SCREEN_DEF true
+
+#define COMMON_AUTO_MIRROR_KEY "AutoMirror"
+#define COMMON_AUTO_MIRROR_DEF true
+
 #define COMMON_FRAMELESS_WINDOW_KEY "FramelessWindow"
 #define COMMON_FRAMELESS_WINDOW_DEF false
 
@@ -152,9 +159,10 @@ const QString &Config::getConfigPath()
             s_configPath = Path::GetCurrentPath();
             s_configPath += "/Contents/MacOS/config";
 #else
-            s_configPath = "config";
+            s_configPath = QCoreApplication::applicationDirPath() + "/config";
 #endif
         }
+        QDir().mkpath(s_configPath);
     }
     return s_configPath;
 }
@@ -174,6 +182,8 @@ void Config::setUserBootConfig(const UserBootConfig &config)
     m_userData->setValue(COMMON_SHOW_FPS_KEY, config.showFPS);
     m_userData->setValue(COMMON_WINDOW_ON_TOP_KEY, config.windowOnTop);
     m_userData->setValue(COMMON_AUTO_OFF_SCREEN_KEY, config.autoOffScreen);
+    m_userData->setValue(COMMON_AUTO_CLOSE_SCREEN_KEY, config.autoCloseScreen);
+    m_userData->setValue(COMMON_AUTO_MIRROR_KEY, config.autoMirror);
     m_userData->setValue(COMMON_KEEP_ALIVE_KEY, config.keepAlive);
     m_userData->setValue(COMMON_SIMPLE_MODE_KEY, config.simpleMode);
     m_userData->setValue(COMMON_AUTO_UPDATE_DEVICE_KEY, config.autoUpdateDevice);
@@ -198,6 +208,8 @@ UserBootConfig Config::getUserBootConfig()
     config.showFPS = m_userData->value(COMMON_SHOW_FPS_KEY, COMMON_SHOW_FPS_DEF).toBool();
     config.windowOnTop = m_userData->value(COMMON_WINDOW_ON_TOP_KEY, COMMON_WINDOW_ON_TOP_DEF).toBool();
     config.autoOffScreen = m_userData->value(COMMON_AUTO_OFF_SCREEN_KEY, COMMON_AUTO_OFF_SCREEN_DEF).toBool();
+    config.autoCloseScreen = m_userData->value(COMMON_AUTO_CLOSE_SCREEN_KEY, COMMON_AUTO_CLOSE_SCREEN_DEF).toBool();
+    config.autoMirror = m_userData->value(COMMON_AUTO_MIRROR_KEY, COMMON_AUTO_MIRROR_DEF).toBool();
     config.keepAlive = m_userData->value(COMMON_KEEP_ALIVE_KEY, COMMON_KEEP_ALIVE_DEF).toBool();
     config.simpleMode = m_userData->value(COMMON_SIMPLE_MODE_KEY, COMMON_SIMPLE_MODE_DEF).toBool();
     config.autoUpdateDevice = m_userData->value(COMMON_AUTO_UPDATE_DEVICE_KEY, COMMON_AUTO_UPDATE_DEVICE_DEF).toBool();

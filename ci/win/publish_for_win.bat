@@ -101,15 +101,15 @@ if /i %cpu_mode% == x86 (
 
 :: copy vcruntime dll
 if /i %cpu_mode% == x64 (
-    cp "C:\Windows\System32\msvcp140_1.dll" %publish_path%\msvcp140_1.dll
-    cp "C:\Windows\System32\msvcp140.dll" %publish_path%\msvcp140.dll
-    cp "C:\Windows\System32\vcruntime140.dll" %publish_path%\vcruntime140.dll
+    copy "C:\Windows\System32\msvcp140_1.dll" %publish_path%msvcp140_1.dll /Y
+    copy "C:\Windows\System32\msvcp140.dll" %publish_path%msvcp140.dll /Y
+    copy "C:\Windows\System32\vcruntime140.dll" %publish_path%vcruntime140.dll /Y
     :: 只有x64需要
-    cp "C:\Windows\System32\vcruntime140_1.dll" %publish_path%\vcruntime140_1.dll
+    copy "C:\Windows\System32\vcruntime140_1.dll" %publish_path%vcruntime140_1.dll /Y
 ) else (
-    cp "C:\Windows\SysWOW64\msvcp140_1.dll" %publish_path%\msvcp140_1.dll
-    cp "C:\Windows\SysWOW64\msvcp140.dll" %publish_path%\msvcp140.dll
-    cp "C:\Windows\SysWOW64\vcruntime140.dll" %publish_path%\vcruntime140.dll
+    copy "C:\Windows\SysWOW64\msvcp140_1.dll" %publish_path%msvcp140_1.dll /Y
+    copy "C:\Windows\SysWOW64\msvcp140.dll" %publish_path%msvcp140.dll /Y
+    copy "C:\Windows\SysWOW64\vcruntime140.dll" %publish_path%vcruntime140.dll /Y
     
 )
 
